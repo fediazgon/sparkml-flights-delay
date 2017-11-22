@@ -1,19 +1,26 @@
+package upm.bd
+
 import org.rogach.scallop._
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
-//  val apples = opt[Int](required = true)
-//  val bananas = opt[Int]()
-  val rawFilePath = trailArg[String](required = true)
+  //  val apples = opt[Int](required = true)
+  //  val bananas = opt[Int]()
+  val rawFilePath = trailArg[String](required = false)
   verify()
 }
 
 object FlightDelayApp {
-  def main(args : Array[String]): Unit =
-  {
-    println("hello World!")
+
+  private val DEFAULT_FILE_PATH: String = "raw/2008.csv.bz2"
+
+  def main(args: Array[String]): Unit = {
+    println("Hello World!")
     val conf = new Conf(args)
-    println(s"Using file ${conf.rawFilePath.getOrElse("")}")
-    
+    val rawFilePath = conf.rawFilePath.getOrElse(DEFAULT_FILE_PATH)
+    println(s"Using file $rawFilePath")
+
+    val lr = new LinearRegression(rawFilePath)
+    lr.exec()
   }
 
 }

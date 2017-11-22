@@ -6,8 +6,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 // add functionality in an object-oriented manner.
 trait SparkSessionWrapper {
 
-  private val FILE_PATH: String = "raw/2008.csv.bz2"
-
   // This variable should be accessed only within the object itself, i.e.,
   // using the 'this' keyword.
   protected[this] lazy val spark: SparkSession =
@@ -20,7 +18,7 @@ trait SparkSessionWrapper {
 
   // Here we can do all the data pre-processing and then shared it among
   // all the classes extending this trait.
-  protected def flightsData: DataFrame = {
+  protected def flightsData(dataFile: String): DataFrame = {
 
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn",
       "Diverted", "CarrierDelay", "WeatherDelay", "NASDelay",
@@ -28,7 +26,7 @@ trait SparkSessionWrapper {
 
     spark.read
       .option("header", value = true)
-      .csv(FILE_PATH)
+      .csv(dataFile)
       .drop(forbiddenVariables: _*)
       .cache()
 
