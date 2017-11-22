@@ -30,6 +30,7 @@ trait SparkSessionWrapper {
       .option("header", value = true)
       .csv(FILE_PATH)
       .drop(forbiddenVariables: _*)
+      .cache()
 
   }
 
