@@ -19,8 +19,11 @@ object FlightDelayApp {
     val rawFilePath = conf.rawFilePath.getOrElse(DEFAULT_FILE_PATH)
     println(s"Using file $rawFilePath")
 
-    val lr = new LinearRegression(rawFilePath)
-    lr.exec()
+    val spark = SparkSessionWrapper.spark //get it evaluated here
+
+    val preprocesser = new Preprocesser;
+    preprocesser.preprocess(rawFilePath).show(10)
+
   }
 
 }

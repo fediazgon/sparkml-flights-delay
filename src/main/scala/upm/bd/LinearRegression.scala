@@ -1,14 +1,15 @@
 package upm.bd
 
 import org.apache.log4j.{Level, Logger}
+import org.apache.spark.sql.DataFrame
 
-class LinearRegression(var dataFile: String) extends SparkSessionWrapper {
+class LinearRegression() {
 
-  def exec(): Unit = {
+
+
+  def exec(df: DataFrame): Unit = {
     Logger.getLogger("org").setLevel(Level.WARN)
-
-    val df = flightsData(dataFile)
-    df show 5
+    //have fun fernando
   }
 
 }
