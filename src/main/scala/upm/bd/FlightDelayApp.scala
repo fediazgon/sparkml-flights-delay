@@ -21,8 +21,18 @@ object FlightDelayApp {
 
     val spark = SparkSessionWrapper.spark //get it evaluated here
 
-    val preprocesser = new Preprocesser;
-    preprocesser.preprocess(rawFilePath).show(10)
+
+    val preprocesser = new Preprocesser
+    val featuresCreator = new FeaturesCreator
+
+    val preprocessedDf = preprocesser.preprocess(rawFilePath)
+    preprocessedDf.show(10)
+
+    val featuresDf = featuresCreator.createFeatures(preprocessedDf)
+    featuresDf.show(10)
+
+    val lr = new LinearRegression()
+    lr.exec(featuresDf)
 
   }
 
