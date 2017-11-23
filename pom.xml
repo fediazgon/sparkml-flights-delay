@@ -42,21 +42,30 @@
             <artifactId>spark-sql_${scala.compat.version}</artifactId>
             <version>${spark.version}</version>
         </dependency>
-        <!--"org.rogach" %% "scallop" % "3.1.1"-->
-        <!-- https://mvnrepository.com/artifact/org.rogach/scallop -->
-        <!-- https://mvnrepository.com/artifact/org.rogach/scallop -->
-        <dependency>
-            <groupId>org.rogach</groupId>
-            <artifactId>scallop_2.11</artifactId>
-            <version>3.1.1</version>
-        </dependency>
-
-
 
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib_${scala.compat.version}</artifactId>
             <version>${spark.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scalactic</groupId>
+            <artifactId>scalactic_${scala.compat.version}</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.compat.version}</artifactId>
+            <version>3.0.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.rogach</groupId>
+            <artifactId>scallop_2.11</artifactId>
+            <version>3.1.1</version>
         </dependency>
 
     </dependencies>
