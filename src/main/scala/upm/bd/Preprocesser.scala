@@ -39,7 +39,11 @@ class Preprocesser( delayThreshold : Int = 15 ,verbose: Boolean = true) {
     //create a column if the delay is more than the threshould, maybe we will make a binary classifier
     //I am using the SQL api because i got a non serializable exception if I use the delayThreshold as a value
     df = df.select($"*",($"ArrDelay" > lit(delayThreshold)).as("OverDelay"))
-    df.printSchema()
+
+    //adding the route row, can be interesting
+    df = df.select($"*",(concat($"Origin",lit("-"),$"Dest")).as("Route"))
+
+    if (verbose) df.printSchema()
     df
   }
 
