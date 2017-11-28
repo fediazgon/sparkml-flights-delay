@@ -1,5 +1,7 @@
-package upm.bd
+package upm.bd.utils
 
+import com.jcabi.log.MulticolorLayout
+import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.DataType
 
@@ -12,4 +14,10 @@ object DataFrameUtils {
     )
   }
 
+  def show(dataFrame: DataFrame, numRows: Int = 10): Unit = {
+    dataFrame.show(numRows)
+  }
+
 }
+
+

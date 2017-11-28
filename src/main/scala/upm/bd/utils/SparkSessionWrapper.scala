@@ -1,6 +1,6 @@
-package upm.bd
+package upm.bd.utils
 
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.SparkSession
 
 // It's a trait because it has not independent meaning, we use this trait to
 // add functionality in an object-oriented manner.
