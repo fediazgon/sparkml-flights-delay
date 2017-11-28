@@ -21,6 +21,13 @@ class Preprocesser( delayThreshold : Int = 15 ,verbose: Boolean = true) {
       .withColumn("Diverted", $"Diverted".cast("int"))
       .withColumn("TaxiOut", $"TaxiOut".cast("int")) //we can use it because we havent still took off
       .withColumn("ArrDelay", $"ArrDelay".cast("int"))
+      .withColumn("Year",$"Year".cast("int"))
+      .withColumn("Month",$"Month".cast("int"))
+      .withColumn("DayofMonth",$"DayofMonth".cast("int"))
+
+
+    //remove diverted flights because they hanve null ArrDelay
+    df = df.filter($"Diverted" === 0)
 
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn", "Diverted", "CarrierDelay",
       "WeatherDelay", "NASDelay", "SecurityDelay", "LateAircraftDelay")
@@ -36,14 +43,42 @@ class Preprocesser( delayThreshold : Int = 15 ,verbose: Boolean = true) {
     val isWeekEndUdf = udf(
       (dayOfWeek : Int) => if (dayOfWeek == 6 || dayOfWeek == 7) 1 else 0
     )
+
+    val hourExtractorUdf = udf(
+      (timeString : String) =>
+        {
+          if (timeString.length > 2) timeString.substring(0,timeString.length - 2).toInt else 0
+        }
+
+    )
     //create a column if the delay is more than the threshould, maybe we will make a binary classifier
     //I am using the SQL api because i got a non serializable exception if I use the delayThreshold as a value
     df = df.select($"*",($"ArrDelay" > lit(delayThreshold)).as("OverDelay"))
+    df = df.withColumn("WeekEnd", isWeekEndUdf($"DayofWeek"))
+      .withColumn("CRSDepHour", hourExtractorUdf($"CRSDepTime"))
+      .withColumn("DepHour", hourExtractorUdf($"DepTime"))
+
 
     //adding the route row, can be interesting
     df = df.select($"*",(concat($"Origin",lit("-"),$"Dest")).as("Route"))
 
+    //we drop columns we do not think to be worth it
+    df = df.drop("CRSDepTime", "CRSArrTime", "DepTime", "FlightNum", "TailNum")
+
+
+
+
+
+
+    if(df.filter($"ArrDelay".isNull).count() > 0)
+    {
+      println("WARN: There are records with null target variable after preprocessing")
+    }
+
+    showDf(df)
     if (verbose) df.printSchema()
+
+
     df
   }
 

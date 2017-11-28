@@ -27,6 +27,9 @@ object FlightDelayApp {
     val preprocessedDf = preprocesser.preprocess(rawFilePath)
     preprocessedDf.show(10)
 
+    val explorator = new Explorator
+    explorator.explore(preprocessedDf)
+
     featuresCreator.transform(preprocessedDf).show()
 
   }
