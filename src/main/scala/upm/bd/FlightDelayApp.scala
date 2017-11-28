@@ -36,7 +36,7 @@ object FlightDelayApp {
       .setMaxIter(10)
       .setElasticNetParam(0.8)
     val lrModel = lr.fit(dfFeatures)
-    print(s"Summary: ${lrModel.summary}")
+    print(s"Summary: ${lrModel.summary.residuals}")
 
   }
 

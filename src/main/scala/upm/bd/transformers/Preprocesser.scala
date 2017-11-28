@@ -30,14 +30,17 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) {
       .withColumn("DayofMonth", $"DayofMonth".cast("int"))
 
     // Remove diverted flights because they have null ArrDelay
-    // df = df.filter($"Diverted" === 0)
-    // TODO: modified by Fernan. Maybe na.drop is a better approach (see below)?
+    df = df.filter($"Diverted" === 0)
+    // TODO: Read this Giorgio. Maybe na.drop is a better approach
+    // df = df.drop(forbiddenVariables: _*).na.drop(Seq("ArrDelay"))
+    // The thing is that flights with null "ArrDelay" are flights that
+    // have been cancelled or diverted. So, let's just remove all flights
+    // without "ArrDelay".
 
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn", "Diverted",
       "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", "LateAircraftDelay")
-    val targetVariable = "ArrDelay"
-    MyLogger.info(s"Removing forbidden variables and nulls in $targetVariable")
-    df = df.drop(forbiddenVariables: _*).na.drop(Seq(targetVariable))
+    MyLogger.info(s"Removing forbidden variables")
+    df = df.drop(forbiddenVariables: _*)
 
     if (verbose) {
       MyLogger.info("Resulting DataFrame:")
@@ -93,8 +96,6 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) {
           .count
           .rdd
           .collect() // We can call collect. It's going to have 2 rows only
-
-      cancelledCount.foreach(x => print(x.toString()))
 
       // TODO: this throws an exception when there is no cancelled flights
       val (cancelled, notCancelled) =
