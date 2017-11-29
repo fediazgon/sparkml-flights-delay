@@ -1,23 +1,21 @@
 package upm.bd.transformers
 
-import com.typesafe.scalalogging.Logger
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.ml.Transformer
+import org.apache.spark.ml.param.ParamMap
+import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.functions._
-import upm.bd.utils.{DataFrameUtils, MyLogger, SparkSessionWrapper}
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{DataFrame, Dataset}
 import upm.bd.utils.SparkSessionWrapper.spark.implicits._
+import upm.bd.utils.{DataFrameUtils, MyLogger}
 
-class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) {
+class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Transformer {
 
-  def preprocess(filePath: String): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
     MyLogger.printHeader("PREPROCESSING")
 
-    MyLogger.info(s"Reading file $filePath")
-    // Using it as var because we are going to do casting and dropping
-    var df = SparkSessionWrapper.spark
-      .read
-      .option("header", value = true)
-      .csv(filePath)
+    var df = dataset
       .withColumn("DayOfWeek", $"DayOfWeek".cast("int"))
       .withColumn("DepDelay", $"DepDelay".cast("int")) // Compact column syntax
       .withColumn("Distance", $"Distance".cast("int"))
@@ -110,4 +108,9 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) {
     dataFrame.filter($"Cancelled" === 0).drop("Cancelled", "CancellationCode")
   }
 
+  override def copy(extra: ParamMap): Preprocesser = defaultCopy(extra)
+
+  override def transformSchema(schema: StructType): StructType = schema
+
+  override val uid: String = Identifiable.randomUID(this.getClass.getName)
 }

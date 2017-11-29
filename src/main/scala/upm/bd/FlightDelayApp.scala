@@ -11,7 +11,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
 object FlightDelayApp {
 
-  private val DEFAULT_FILE_PATH: String = "raw/2008.csv.bz2"
+  private val DEFAULT_FILE_PATH: String = "raw/1000r.csv"
 
   def main(args: Array[String]): Unit = {
 
@@ -19,10 +19,12 @@ object FlightDelayApp {
     val TARGET_COL_NAMES = "ArrDelay"
 
     val conf = new Conf(args)
-    val rawFilePath = conf.rawFilePath.getOrElse(DEFAULT_FILE_PATH)
+    val filePath = conf.rawFilePath.getOrElse(DEFAULT_FILE_PATH)
+
+    val rawDf = CSVReader.read(filePath, hasHeader = true)
 
     val preprocesser = new Preprocesser
-    val preprocessedDf = preprocesser.preprocess(rawFilePath)
+    val preprocessedDf = preprocesser.transform(rawDf)
 
     val explorer = new Explorer
     explorer.explore(preprocessedDf)
