@@ -16,16 +16,17 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
     MyLogger.printHeader("PREPROCESSING")
 
     var df = dataset
-      .withColumn("DayOfWeek", $"DayOfWeek".cast("int"))
-      .withColumn("DepDelay", $"DepDelay".cast("int")) // Compact column syntax
-      .withColumn("Distance", $"Distance".cast("int"))
-      .withColumn("Cancelled", $"Cancelled".cast("int")) // Keeping it as an int to exploit aggregation functions
-      .withColumn("Diverted", $"Diverted".cast("int"))
-      .withColumn("TaxiOut", $"TaxiOut".cast("int")) // We can use it because we haven't still took off
-      .withColumn("ArrDelay", $"ArrDelay".cast("int"))
       .withColumn("Year", $"Year".cast("int"))
       .withColumn("Month", $"Month".cast("int"))
       .withColumn("DayofMonth", $"DayofMonth".cast("int"))
+      .withColumn("DayOfWeek", $"DayOfWeek".cast("int"))
+      .withColumn("CRSElapsedTime", $"CRSElapsedTime".cast("int"))
+      .withColumn("DepDelay", $"DepDelay".cast("int"))
+      .withColumn("Distance", $"Distance".cast("int"))
+      .withColumn("TaxiOut", $"TaxiOut".cast("int"))
+      .withColumn("Cancelled", $"Cancelled".cast("int"))
+      .withColumn("Diverted", $"Diverted".cast("int"))
+      .withColumn("ArrDelay", $"ArrDelay".cast("int"))
 
     // Remove diverted flights because they have null ArrDelay
     df = df.filter($"Diverted" === 0)
