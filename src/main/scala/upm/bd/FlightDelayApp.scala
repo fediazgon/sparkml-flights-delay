@@ -25,7 +25,10 @@ object FlightDelayApp {
 
     val rawDf = CSVReader.read(filePath, hasHeader = true)
 
+
+
     val rfp = new RandomForestPipeline(rawDf)
+    rfp.run()
     //
     //    val preprocesser = new Preprocesser
     //    val preprocessedDf = preprocesser.transform(rawDf)

@@ -6,6 +6,9 @@ import org.apache.spark.ml.regression.RandomForestRegressor
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.{Dataset, Row}
 import upm.bd.transformers.{FeaturesCreator, Indexer, Preprocesser}
+import org.apache.spark.sql.functions._
+import upm.bd.utils.MyLogger
+
 
 class RandomForestPipeline(val data: Dataset[_]) {
 
@@ -15,63 +18,70 @@ class RandomForestPipeline(val data: Dataset[_]) {
   val FEATURES_COL_NAMES = Array(
     "Month",
     "DayofMonth",
-    "DayOfWeek",
+//    "DayOfWeek",
     "Distance",
     "TaxiOut",
     "UniqueCarrierIndex",
-    "OriginIndex",
-    "DestIndex",
+//    "OriginIndex",
+//    "DestIndex",
     "WeekEnd",
-    "CRSDepHour",
-    "DepHour")
+    "CRSDepTimeMin",
+    "DepTimeMin",
+    "CRSElapsedTime"
+  )
 
-  val preprocesser = new Preprocesser(verbose = false)
-  val preprocessedDf = preprocesser.transform(data)
+  def run() : Unit =
+  {
+    import upm.bd.utils.SparkSessionWrapper.spark.implicits._
 
-  val indexed = new Indexer(INDEX_COL_NAMES).transform(preprocessedDf)
+    val preprocesser = new Preprocesser(verbose = false)
+    val preprocessedDf = preprocesser.transform(data)
 
-  val featuresCreator = new FeaturesCreator(FEATURES_COL_NAMES)
-  val dfFeatures = featuresCreator.transform(indexed)
+    val indexed = new Indexer(INDEX_COL_NAMES).transform(preprocessedDf)
 
-  val indexerModel = new VectorIndexer()
-    .setInputCol("features")
-    .setOutputCol("indexed")
-    .setMaxCategories(10)
-    .fit(dfFeatures)
+    val featuresCreator = new FeaturesCreator(FEATURES_COL_NAMES)
+    val dfFeatures = featuresCreator.transform(indexed)
 
-  val finalData = indexerModel.transform(dfFeatures)
-  //val finalData = dfFeatures
-  finalData.show(10)
+    val indexerModel = new VectorIndexer()
+      .setInputCol("features")
+      .setOutputCol("indexed")
+      .setMaxCategories(10)
+      .fit(dfFeatures)
 
-  val Array(training, test) = finalData.randomSplit(Array(0.7, 0.3))
+    val finalData = indexerModel.transform(dfFeatures)//.select($"indexed",$"ArrDelay")
+    //val finalData = dfFeatures
+    MyLogger.info("Final Data")
+    finalData.show(10)
 
-  val model = new RandomForestRegressor()
-    .setLabelCol("ArrDelay")
-    .setFeaturesCol("indexed")
-    .setMaxBins(1000)
+    val Array(training, test) = finalData.randomSplit(Array(0.7, 0.3))
 
-  val evaluator = new RegressionEvaluator()
-    .setLabelCol("ArrDelay")
-    .setPredictionCol("prediction")
-    .setMetricName("rmse")
+    val model = new RandomForestRegressor()
+      .setLabelCol("ArrDelay")
+      .setFeaturesCol("indexed")
+//      .setMaxBins(1000)
 
-  val paramGrid = new ParamGridBuilder()
-    .build()
+    val evaluator = new RegressionEvaluator()
+      .setLabelCol("ArrDelay")
+      .setPredictionCol("prediction")
+      .setMetricName("rmse")
 
-  val cv = new CrossValidator()
-    .setEstimator(model)
-    .setEvaluator(evaluator)
-    .setEstimatorParamMaps(paramGrid)
-    .setNumFolds(10)
+    val paramGrid = new ParamGridBuilder()
+      .build()
 
-  val cvModel = cv.fit(training)
-  println(cvModel.avgMetrics.foreach(println))
+    val cv = new CrossValidator()
+      .setEstimator(model)
+      .setEvaluator(evaluator)
+      .setEstimatorParamMaps(paramGrid)
+      .setNumFolds(10)
 
-  cvModel.transform(test).show(100)
-  //    .select("id", "text", "probability", "prediction")
-  //    .collect()
-  //    .foreach { case Row(id: Long, text: String, prob: Vector, prediction: Double) =>
-  //      println(s"($id, $text) --> prob=$prob, prediction=$prediction")
-  //    }
+    val cvModel = cv.fit(training)
+    println(cvModel.avgMetrics.foreach(println))
 
+    cvModel.transform(test).select($"ArrDelay",$"prediction").show(100)
+    //    .select("id", "text", "probability", "prediction")
+    //    .collect()
+    //    .foreach { case Row(id: Long, text: String, prob: Vector, prediction: Double) =>
+    //      println(s"($id, $text) --> prob=$prob, prediction=$prediction")
+    //    }
+  }
 }

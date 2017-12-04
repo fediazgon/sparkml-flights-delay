@@ -35,10 +35,12 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
     // The thing is that flights with null "ArrDelay" are flights that
     // have been cancelled or diverted. So, let's just remove all flights
     // without "ArrDelay".
-
+    // TODO: Read this Fernando.
+    // we cannot assume that every na is either diverted or cancelled, this is not
+    // true in general, either it is documented.
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn", "Diverted",
       "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", "LateAircraftDelay")
-    MyLogger.info(s"Removing forbidden variables")
+    MyLogger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(",")}")
     df = df.drop(forbiddenVariables: _*)
 
     if (verbose) {
@@ -53,27 +55,30 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
     val isWeekEndUdf = udf(
       (dayOfWeek: Int) => if (dayOfWeek == 6 || dayOfWeek == 7) 1 else 0
     )
-
-    val hourExtractorUdf = udf(
+    //convert in minutes since midnight
+    val minutesConverter = udf(
       (timeString: String) => {
-        if (timeString.length > 2) timeString.substring(0, timeString.length - 2).toInt else 0
+        val hours = if (timeString.length > 2) timeString.substring(0, timeString.length - 2).toInt else 0
+        hours * 60 + timeString.takeRight(2).toInt
       })
 
     // Create a column if the delay is more than the threshold, maybe we will make a binary classifier
-    // I am using the SQL API because I got a non serializable exception if I use the delayThreshold as a value
+    // This is beyond the scope of the exam
     MyLogger.info("Adding 'OverDelay', 'OverDelay', 'CRSDepHour' and 'DepHour' columns")
     df = df.select($"*", ($"ArrDelay" > lit(delayThreshold)).as("OverDelay"))
+    MyLogger.info("Converting time columns")
     df = df.withColumn("WeekEnd", isWeekEndUdf($"DayofWeek"))
-      .withColumn("CRSDepHour", hourExtractorUdf($"CRSDepTime"))
-      .withColumn("DepHour", hourExtractorUdf($"DepTime"))
+      .withColumn("CRSDepTimeMin", minutesConverter($"CRSDepTime"))
+      .withColumn("DepTimeMin", minutesConverter($"DepTime"))
 
     // Adding the route row, can be interesting
     MyLogger.info("Adding 'Route' column")
     df = df.select($"*", concat($"Origin", lit("-"), $"Dest").as("Route"))
 
-    // We drop columns we do not think to be worth it
-    MyLogger.info("Dropping non-worthy columns: 'CRSDepTime', 'CRSArrTime', 'DepTime', 'DepTime' and 'TailNum'")
-    df = df.drop("CRSDepTime", "CRSArrTime", "DepTime", "FlightNum", "TailNum")
+//    // We drop columns we do not think to be worth it
+    val toDrop  = Array("CRSDepTime", "CRSArrTime", "DepTime", "FlightNum", "TailNum")
+    MyLogger.info(s"Dropping non-worthy columns: ${toDrop.mkString(",")}")
+    df = df.drop(toDrop:_*)
 
 
     MyLogger.info("Final DataFrame:")
