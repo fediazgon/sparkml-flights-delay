@@ -9,9 +9,9 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 import upm.bd.utils.SparkSessionWrapper.spark.implicits._
 import upm.bd.utils.{DataFrameUtils, MyLogger}
 
-class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Transformer {
+class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) {
 
-  override def transform(dataset: Dataset[_]): DataFrame = {
+  def preprocess(dataset: Dataset[_]): DataFrame = {
 
     MyLogger.printHeader("PREPROCESSING")
 
@@ -29,7 +29,9 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
       .withColumn("ArrDelay", $"ArrDelay".cast("int"))
 
     // Remove diverted flights because they have null ArrDelay
+    MyLogger.info("Removing diverted flights")
     df = df.filter($"Diverted" === 0)
+
     // TODO: Read this Giorgio. Maybe na.drop is a better approach
     // df = df.drop(forbiddenVariables: _*).na.drop(Seq("ArrDelay"))
     // The thing is that flights with null "ArrDelay" are flights that
@@ -38,23 +40,37 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
     // TODO: Read this Fernando.
     // we cannot assume that every na is either diverted or cancelled, this is not
     // true in general, either it is documented.
+    MyLogger.info("Removing cancelled flights")
+    df = removeCancelled(df)
+
+
+    // check null values
+    // They are not expected so I want to inspect
+    val nullValuesDf = df.filter($"ArrDelay".isNull).cache() //using it after count, which is an action
+    if (nullValuesDf.count() > 0)
+    {
+      MyLogger.warn("We still have null values! Please check why!\n" +
+        "We already have removed the expected source of nulls.")
+      nullValuesDf.show(100)
+      MyLogger.info("Removing remaining null values")
+      df = df.filter($"ArrDelay".isNotNull)
+    }
+    else
+    {
+      MyLogger.info("No null values in target column")
+    }
+
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn", "Diverted",
       "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", "LateAircraftDelay")
     MyLogger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(",")}")
     df = df.drop(forbiddenVariables: _*)
 
-    if (verbose) {
-      MyLogger.info("Resulting DataFrame:")
-      DataFrameUtils.show(df)
-    }
 
-    MyLogger.info("Removing cancelled flights")
-    df = removeCancelled(df)
-
-    // Lets create a column for weekends
-    val isWeekEndUdf = udf(
-      (dayOfWeek: Int) => if (dayOfWeek == 6 || dayOfWeek == 7) 1 else 0
-    )
+    // Lets create a column for weekends -> no longer needed, I prefer to use the SQL API, should not
+    // require the deserialization of the data
+//    val isWeekEndUdf = udf(
+//      (dayOfWeek: Int) => if (dayOfWeek == 6 || dayOfWeek == 7) 1 else 0
+//    )
     //convert in minutes since midnight
     val minutesConverter = udf(
       (timeString: String) => {
@@ -64,10 +80,15 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
 
     // Create a column if the delay is more than the threshold, maybe we will make a binary classifier
     // This is beyond the scope of the exam
-    MyLogger.info("Adding 'OverDelay', 'OverDelay', 'CRSDepHour' and 'DepHour' columns")
-    df = df.select($"*", ($"ArrDelay" > lit(delayThreshold)).as("OverDelay"))
+    MyLogger.info("Adding 'OverDelay' and 'WeekEnd' columns")
+    df = df.select(
+      $"*",
+      ($"ArrDelay" > lit(delayThreshold)).as("OverDelay"),
+      (col("DayOfWeek") === 6 || col("DayOfWeek") === 7).as("WeekEnd")
+    )
+
     MyLogger.info("Converting time columns")
-    df = df.withColumn("WeekEnd", isWeekEndUdf($"DayofWeek"))
+    df = df
       .withColumn("CRSDepTimeMin", minutesConverter($"CRSDepTime"))
       .withColumn("DepTimeMin", minutesConverter($"DepTime"))
 
@@ -114,9 +135,5 @@ class Preprocesser(delayThreshold: Int = 15, verbose: Boolean = true) extends Tr
     dataFrame.filter($"Cancelled" === 0).drop("Cancelled", "CancellationCode")
   }
 
-  override def copy(extra: ParamMap): Preprocesser = defaultCopy(extra)
 
-  override def transformSchema(schema: StructType): StructType = schema
-
-  override val uid: String = Identifiable.randomUID(this.getClass.getName)
 }

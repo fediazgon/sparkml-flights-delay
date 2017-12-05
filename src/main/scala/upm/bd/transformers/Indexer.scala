@@ -7,9 +7,9 @@ import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class Indexer(val colNamesToIndex: Array[String]) extends Transformer {
+class Indexer(val colNamesToIndex: Array[String]) {
 
-  override def transform(dataset: Dataset[_]): DataFrame = {
+  def indexColumns(dataset: Dataset[_]): DataFrame = {
     var transformed = dataset
     for (column: String <- colNamesToIndex) {
       val indexer = new StringIndexer()
@@ -20,11 +20,5 @@ class Indexer(val colNamesToIndex: Array[String]) extends Transformer {
     }
     transformed.toDF()
   }
-
-  override def copy(extra: ParamMap): Preprocesser = defaultCopy(extra)
-
-  override def transformSchema(schema: StructType): StructType = schema
-
-  override val uid: String = Identifiable.randomUID(this.getClass.getName)
 
 }

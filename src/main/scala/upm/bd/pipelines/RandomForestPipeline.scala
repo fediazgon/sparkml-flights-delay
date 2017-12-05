@@ -16,18 +16,19 @@ class RandomForestPipeline(val data: Dataset[_]) {
 
 
   val FEATURES_COL_NAMES = Array(
-    "Month",
-    "DayofMonth",
+//    "Month",
+//    "DayofMonth",
 //    "DayOfWeek",
+//    "WeekEnd",
     "Distance",
     "TaxiOut",
-    "UniqueCarrierIndex",
+//    "UniqueCarrierIndex",
 //    "OriginIndex",
 //    "DestIndex",
-    "WeekEnd",
-    "CRSDepTimeMin",
-    "DepTimeMin",
-    "CRSElapsedTime"
+//    "CRSDepTimeMin",
+    "DepDelay",
+    "DepTimeMin"
+//    "CRSElapsedTime"
   )
 
   def run() : Unit =
@@ -35,35 +36,38 @@ class RandomForestPipeline(val data: Dataset[_]) {
     import upm.bd.utils.SparkSessionWrapper.spark.implicits._
 
     val preprocesser = new Preprocesser(verbose = false)
-    val preprocessedDf = preprocesser.transform(data)
+    val preprocessedDf = preprocesser.preprocess(data)
 
-    val indexed = new Indexer(INDEX_COL_NAMES).transform(preprocessedDf)
+    val indexedDf = new Indexer(INDEX_COL_NAMES).indexColumns(preprocessedDf)
 
     val featuresCreator = new FeaturesCreator(FEATURES_COL_NAMES)
-    val dfFeatures = featuresCreator.transform(indexed)
+    val featuresDf = featuresCreator.transform(indexedDf)
 
-    val indexerModel = new VectorIndexer()
-      .setInputCol("features")
-      .setOutputCol("indexed")
-      .setMaxCategories(10)
-      .fit(dfFeatures)
+//    val indexerModel = new VectorIndexer()
+//      .setInputCol("features")
+//      .setOutputCol("indexed")
+//      .setMaxCategories(10)
+//      .fit(featuresDf)
 
-    val finalData = indexerModel.transform(dfFeatures)//.select($"indexed",$"ArrDelay")
-    //val finalData = dfFeatures
+//    val finalData = indexerModel.transform(featuresDf)//.select($"indexed",$"ArrDelay")
+    var finalData = featuresDf
     MyLogger.info("Final Data")
-    finalData.show(10)
+    finalData.show(100,truncate = false)
+
+    finalData = finalData.select($"features",$"ArrDelay")
+
 
     val Array(training, test) = finalData.randomSplit(Array(0.7, 0.3))
 
     val model = new RandomForestRegressor()
       .setLabelCol("ArrDelay")
-      .setFeaturesCol("indexed")
+      .setFeaturesCol("features")
 //      .setMaxBins(1000)
 
     val evaluator = new RegressionEvaluator()
       .setLabelCol("ArrDelay")
       .setPredictionCol("prediction")
-      .setMetricName("rmse")
+      .setMetricName("mae")
 
     val paramGrid = new ParamGridBuilder()
       .build()
@@ -74,11 +78,14 @@ class RandomForestPipeline(val data: Dataset[_]) {
       .setEstimatorParamMaps(paramGrid)
       .setNumFolds(10)
 
+    MyLogger.printHeader("TRAINING")
     val cvModel = cv.fit(training)
     println(cvModel.avgMetrics.foreach(println))
 
-    cvModel.transform(test).select($"ArrDelay",$"prediction").show(100)
-    //    .select("id", "text", "probability", "prediction")
+    MyLogger.printHeader("TESTING")
+    cvModel.transform(test)
+      .select($"ArrDelay",$"prediction", (abs($"ArrDelay" - $"prediction")).as("residual")).select(mean($"residual").as("MAE"), stddev($"residual")).show()
+    //    .select("id", "text", "probability", "prediction")1
     //    .collect()
     //    .foreach { case Row(id: Long, text: String, prob: Vector, prediction: Double) =>
     //      println(s"($id, $text) --> prob=$prob, prediction=$prediction")

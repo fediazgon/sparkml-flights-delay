@@ -20,6 +20,7 @@ object FlightDelayApp {
     //    val FEATURES_COL_NAMES = Array("Year", "Month", "DayOfWeek")
     //    val TARGET_COL_NAMES = "ArrDelay"
     //
+
     val conf = new Conf(args)
     val filePath = conf.rawFilePath.getOrElse(DEFAULT_FILE_PATH)
 

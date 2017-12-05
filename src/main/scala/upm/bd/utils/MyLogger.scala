@@ -38,5 +38,9 @@ object MyLogger {
     logger.info(message)
   }
 
+  def warn(message: String): Unit = {
+    logger.warn(message)
+  }
+
 
 }
