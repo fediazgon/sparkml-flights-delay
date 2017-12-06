@@ -10,7 +10,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
 object FlightDelayApp {
 
-  private val DEFAULT_FILE_PATH: String = "raw/tuning.csv"
+  private val DEFAULT_FILE_PATH: String = "raw/2008_100k.csv"
 
   def main(args: Array[String]): Unit = {
 
@@ -27,5 +27,4 @@ object FlightDelayApp {
     lrPipeline.run()
 
   }
-
 }
