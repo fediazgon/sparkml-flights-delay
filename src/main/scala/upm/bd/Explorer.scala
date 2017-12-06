@@ -1,6 +1,6 @@
 package upm.bd
 
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.functions._
 import upm.bd.utils.MyLogger
 
@@ -12,12 +12,12 @@ class Explorer {
 
   import upm.bd.utils.SparkSessionWrapper.spark.implicits._
 
-  def explore(dataFrame: DataFrame): Unit = {
+  def explore(data: Dataset[_]): Unit = {
 
     MyLogger.printHeader("EXPLORING")
 
     // Count the number of flights by carrier
-    val groupedCarrier = dataFrame.groupBy($"UniqueCarrier")
+    val groupedCarrier = data.groupBy($"UniqueCarrier")
 
     MyLogger.info("Flights by carrier:")
     groupedCarrier
@@ -31,16 +31,16 @@ class Explorer {
       .agg(sum($"ArrDelay"))
       .show(10)
 
-    cancelledRatio(dataFrame)
+    cancelledRatio(data)
 
   }
 
-  private def cancelledRatio(dataFrame: DataFrame): Unit = {
+  private def cancelledRatio(data: Dataset[_]): Unit = {
 
     MyLogger.info("Cancelled flights stats:")
 
     val cancelledCount =
-      dataFrame
+      data
         .select(col("Cancelled"))
         .groupBy(col("Cancelled"))
         .count
