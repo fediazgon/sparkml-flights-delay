@@ -47,7 +47,7 @@ class Preprocesser(delayThreshold: Int = 15) {
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn",
       "Diverted", "CarrierDelay", "WeatherDelay", "NASDelay",
       "SecurityDelay", "LateAircraftDelay")
-    MyLogger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(",")}")
+    MyLogger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(", ")}")
     df = df.drop(forbiddenVariables: _*)
 
     // Convert in minutes since midnight

@@ -1,7 +1,7 @@
 package upm.bd
 
 import org.rogach.scallop._
-import upm.bd.pipelines.{LinearRegressionPipeline, LinearRegressionTuningPipeline, RandomForestPipeline}
+import upm.bd.pipelines._
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val rawFilePath: ScallopOption[String] = trailArg[String](required = false)
@@ -10,7 +10,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
 object FlightDelayApp {
 
-  private val DEFAULT_FILE_PATH: String = "raw/2008_100k.csv"
+  private val DEFAULT_FILE_PATH: String = "raw/2008.csv"
 
   def main(args: Array[String]): Unit = {
 
@@ -19,12 +19,15 @@ object FlightDelayApp {
 
     val rawDf = CSVReader.read(filePath, hasHeader = true)
 
-    // TODO: would be super cool that this class returns the best params
-    val lrTuningPipeline = new LinearRegressionTuningPipeline(rawDf)
-    lrTuningPipeline.run()
+    // new LinearRegressionPipeline(rawDf).run()
 
-    val lrPipeline = new LinearRegressionPipeline(rawDf)
-    lrPipeline.run()
+    new RandomForestPipeline(rawDf).run()
+
+    //    new ComparatorPipeline(rawDf).run()
+    //
+    //    new LinearRegressionTuningPipeline(rawDf).run()
+    //
+    //    new RandomForestTuningPipeline(rawDf).run()
 
   }
 }

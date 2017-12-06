@@ -10,7 +10,7 @@ class LinearRegressionPipeline(data: Dataset[_])
 
   override def executePipeline(data: Dataset[_]): Unit = {
 
-    val Array(training, test) = data.randomSplit(Array(0.7, 0.3))
+    val Array(training, inTheLocker) = data.randomSplit(Array(0.7, 0.3))
 
     import PipelineWithPreprocessing.{LABEL_COL, PREDICTION_COL, METRIC_NAME}
 
@@ -18,14 +18,14 @@ class LinearRegressionPipeline(data: Dataset[_])
       .setLabelCol(LABEL_COL)
       .setPredictionCol(PREDICTION_COL)
       .setMaxIter(10)
-      .setRegParam(0.1)
-      .setElasticNetParam(0.5)
+      .setRegParam(0.3)
+      .setElasticNetParam(0.2)
 
     MyLogger.info("Training...")
     val model = lr.fit(training)
 
     MyLogger.info("Testing...")
-    val predictions = model.transform(test)
+    val predictions = model.transform(inTheLocker)
 
     val evaluator = new RegressionEvaluator()
       .setLabelCol(LABEL_COL)

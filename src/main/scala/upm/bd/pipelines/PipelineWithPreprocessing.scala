@@ -1,6 +1,9 @@
 package upm.bd.pipelines
 
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.ml.Model
+import org.apache.spark.ml.param.ParamMap
+import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, TrainValidationSplit, TrainValidationSplitModel}
+import org.apache.spark.sql.Dataset
 import upm.bd.transformers.{FeaturesCreator, Indexer, Preprocesser}
 import upm.bd.utils.MyLogger
 
@@ -28,6 +31,7 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
     */
   def run(): Unit = {
     MyLogger.printHeader(s"Running ${this.getClass.getSimpleName}")
+    MyLogger.info(s"Predicting using columns: ${FEATURES_COL_NAMES.mkString(", ")}")
     val preprocessedData = preprocess()
     executePipeline(preprocessedData)
     MyLogger.printHeader(s"End ${this.getClass.getSimpleName}")
@@ -38,6 +42,44 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
     df = indexer.indexColumns(df)
     featuresCreator.transform(df)
       .cache() // TODO: to cache or not to cache
+  }
+
+  protected def getModelFromTrainValidation
+  (trainValidationSplit: TrainValidationSplit, trainingData: Dataset[_]): TrainValidationSplitModel = {
+    MyLogger.info("Training...")
+    val model = trainValidationSplit.fit(trainingData)
+
+    val trainedModelParams = model.getEstimatorParamMaps
+    MyLogger.info(s"${trainedModelParams.length} models were trained. " +
+      s"Showing $METRIC_NAME value for each one:")
+
+    printModelsWithMetrics(trainedModelParams, model.validationMetrics)
+
+    model
+  }
+
+  protected def getModelFromCrossValidation
+  (crossValidator: CrossValidator, trainingData: Dataset[_]): CrossValidatorModel = {
+    MyLogger.info("Training...")
+    val model = crossValidator.fit(trainingData)
+
+    val trainedModelParams = model.getEstimatorParamMaps
+    MyLogger.info(s"${trainedModelParams.length} models were trained. " +
+      s"Showing avg $METRIC_NAME value for each one:")
+
+    printModelsWithMetrics(trainedModelParams, model.avgMetrics)
+
+    model
+
+  }
+
+  private def printModelsWithMetrics
+  (trainedModelParams: Array[ParamMap], metricValues: Array[Double]): Unit = {
+    trainedModelParams.zip(metricValues).zipWithIndex.foreach {
+      case ((params, metric), index) =>
+        MyLogger.info(s"Model ${index + 1}:\n" +
+          s"$params -> value = $metric")
+    }
   }
 
 }
