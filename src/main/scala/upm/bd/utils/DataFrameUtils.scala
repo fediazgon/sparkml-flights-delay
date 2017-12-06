@@ -1,7 +1,5 @@
 package upm.bd.utils
 
-import com.jcabi.log.MulticolorLayout
-import org.apache.log4j.Logger
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.DataType
 

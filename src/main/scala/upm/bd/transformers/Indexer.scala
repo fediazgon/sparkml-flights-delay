@@ -1,10 +1,6 @@
 package upm.bd.transformers
 
-import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.feature.StringIndexer
-import org.apache.spark.ml.param.ParamMap
-import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 class Indexer(val colNamesToIndex: Array[String]) {

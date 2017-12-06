@@ -12,16 +12,11 @@ import org.apache.spark.sql.{DataFrame, Dataset}
   */
 class FeaturesCreator(val featuresColNames: Array[String]) extends VectorAssembler {
 
-
   override def transform(dataset: Dataset[_]): DataFrame = {
     this.setInputCols(featuresColNames)
-    this.setOutputCol(FeaturesCreator.FEATURES_COL)
+    this.setOutputCol("features")
     super.transform(dataset)
   }
 
-}
-
-object FeaturesCreator {
-  val FEATURES_COL: String = "features"
 }
 

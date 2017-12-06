@@ -33,7 +33,7 @@ class RandomForestPipeline(val data: Dataset[_]) {
   def run(): Unit = {
     import upm.bd.utils.SparkSessionWrapper.spark.implicits._
 
-    val preprocesser = new Preprocesser(verbose = false)
+    val preprocesser = new Preprocesser()
     val preprocessedDf = preprocesser.preprocess(data)
 
     val indexedDf = new Indexer(INDEX_COL_NAMES).indexColumns(preprocessedDf)

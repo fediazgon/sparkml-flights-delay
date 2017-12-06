@@ -42,5 +42,4 @@ object MyLogger {
     logger.warn(message)
   }
 
-
 }
