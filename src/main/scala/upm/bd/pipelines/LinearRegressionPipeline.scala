@@ -34,7 +34,7 @@ class LinearRegressionPipeline(data: Dataset[_])
 
     // Select example rows to display.
     MyLogger.info("Predictions:")
-    predictions.select(LABEL_COL, PREDICTION_COL, "features").show(5)
+    predictions.select(LABEL_COL, PREDICTION_COL, "features").show(15)
 
     val metric = evaluator.evaluate(predictions)
     MyLogger.info(s"Value of $METRIC_NAME of testing subset: $metric")
