@@ -1,4 +1,4 @@
-package upm.bd.transformers
+package fdiazgon.transformers
 
 import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.sql.{DataFrame, Dataset}

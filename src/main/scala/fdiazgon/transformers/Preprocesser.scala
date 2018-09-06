@@ -1,15 +1,18 @@
-package upm.bd.transformers
+package fdiazgon.transformers
 
+import fdiazgon.utils.SparkSessionWrapper.spark.implicits._
+import fdiazgon.utils.{DataFrameUtils, LoggingUtils}
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset}
-import upm.bd.utils.SparkSessionWrapper.spark.implicits._
-import upm.bd.utils.{DataFrameUtils, MyLogger}
 
 class Preprocesser(delayThreshold: Int = 15) {
 
+  private[this] val logger: Logger = LogManager.getLogger("mylogger")
+
   def preprocess(dataset: Dataset[_]): DataFrame = {
 
-    MyLogger.printHeader("PREPROCESSING")
+    LoggingUtils.printHeader("PREPROCESSING")
 
     var df = dataset
       .withColumn("Year", $"Year".cast("int"))
@@ -25,29 +28,29 @@ class Preprocesser(delayThreshold: Int = 15) {
       .withColumn("ArrDelay", $"ArrDelay".cast("int"))
 
     // Remove diverted flights because they have null ArrDelay
-    MyLogger.info("Removing diverted flights")
+    logger.info("Removing diverted flights")
     df = df.filter($"Diverted" === 0)
 
-    MyLogger.info("Removing cancelled flights")
+    logger.info("Removing cancelled flights")
     df = df.filter($"Cancelled" === 0).drop("Cancelled", "CancellationCode")
 
     // Check null values. They are not expected so I want to inspect
     val nullValuesDf = df.filter($"ArrDelay".isNull)
     if (nullValuesDf.count() > 0) {
-      MyLogger.warn("We still have null values! Please check why!\n" +
+      logger.warn("We still have null values! Please check why!\n" +
         "We already have removed the expected source of nulls.")
       DataFrameUtils.show(nullValuesDf)
-      MyLogger.info("Removing remaining null values")
+      logger.info("Removing remaining null values")
       df = df.filter($"ArrDelay".isNotNull)
     }
     else {
-      MyLogger.info("No null values in target column")
+      logger.info("No null values in target column")
     }
 
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn",
       "Diverted", "CarrierDelay", "WeatherDelay", "NASDelay",
       "SecurityDelay", "LateAircraftDelay")
-    MyLogger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(", ")}")
+    logger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(", ")}")
     df = df.drop(forbiddenVariables: _*)
 
     // Convert in minutes since midnight
@@ -63,28 +66,28 @@ class Preprocesser(delayThreshold: Int = 15) {
 
     // Create a column if the delay is more than the threshold
     // Maybe we will make a binary classifier. This is beyond the scope of the exam
-    MyLogger.info("Adding 'OverDelay' and 'WeekEnd' columns")
+    logger.info("Adding 'OverDelay' and 'WeekEnd' columns")
     df = df.select(
       $"*",
       ($"ArrDelay" > lit(delayThreshold)).as("OverDelay"),
       (col("DayOfWeek") === 6 || col("DayOfWeek") === 7).as("WeekEnd")
     )
 
-    MyLogger.info("Converting time columns")
+    logger.info("Converting time columns")
     df = df
       .withColumn("CRSDepTimeMin", minutesConverter($"CRSDepTime"))
       .withColumn("DepTimeMin", minutesConverter($"DepTime"))
 
     // Adding the route row, can be interesting
-    MyLogger.info("Adding 'Route' column")
+    logger.info("Adding 'Route' column")
     df = df.select($"*", concat($"Origin", lit("-"), $"Dest").as("Route"))
 
     // We drop columns we do not think to be worth it
     val toDrop = Array("CRSDepTime", "CRSArrTime", "DepTime", "FlightNum", "TailNum")
-    MyLogger.info(s"Dropping non-worthy columns: ${toDrop.mkString(", ")}")
+    logger.info(s"Dropping non-worthy columns: ${toDrop.mkString(", ")}")
     df = df.drop(toDrop: _*)
 
-    MyLogger.info("Final DataFrame:")
+    logger.info("Final DataFrame:")
     DataFrameUtils.show(df)
 
     df

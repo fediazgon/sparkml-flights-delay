@@ -1,14 +1,16 @@
-package upm.bd.pipelines
+package fdiazgon.pipelines
 
+import fdiazgon.pipelines.PipelineWithPreprocessing.{LABEL_COL, METRIC_NAME, PREDICTION_COL}
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.regression.RandomForestRegressor
-import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder, TrainValidationSplit}
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.Dataset
-import upm.bd.pipelines.PipelineWithPreprocessing.{LABEL_COL, METRIC_NAME, PREDICTION_COL}
-import upm.bd.utils.MyLogger
 
 class RandomForestTuningPipeline(data: Dataset[_])
   extends PipelineWithPreprocessing(data) {
+
+  private[this] val logger: Logger = LogManager.getLogger("mylogger")
 
   override def executePipeline(data: Dataset[_]): Unit = {
 
@@ -45,7 +47,7 @@ class RandomForestTuningPipeline(data: Dataset[_])
         data)
 
     val bestModel = model.bestModel
-    MyLogger.info("Best model: \n" +
+    logger.info("Best model: \n" +
       s"${bestModel.parent.extractParamMap()} -> value = ${model.avgMetrics.min}")
 
   }

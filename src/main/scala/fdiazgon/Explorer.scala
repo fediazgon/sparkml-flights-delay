@@ -1,8 +1,9 @@
-package upm.bd
+package fdiazgon
 
+import fdiazgon.utils.LoggingUtils
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.functions._
-import upm.bd.utils.MyLogger
 
 
 /**
@@ -10,23 +11,25 @@ import upm.bd.utils.MyLogger
   */
 class Explorer {
 
-  import upm.bd.utils.SparkSessionWrapper.spark.implicits._
+  private[this] val logger: Logger = LogManager.getLogger("mylogger")
+
+  import fdiazgon.utils.SparkSessionWrapper.spark.implicits._
 
   def explore(data: Dataset[_]): Unit = {
 
-    MyLogger.printHeader("EXPLORING")
+    LoggingUtils.printHeader("EXPLORING")
 
     // Count the number of flights by carrier
     val groupedCarrier = data.groupBy($"UniqueCarrier")
 
-    MyLogger.info("Flights by carrier:")
+    logger.info("Flights by carrier:")
     groupedCarrier
       .count()
       .sort($"count".desc)
       .select($"UniqueCarrier", $"count".as("flights"))
       .show(10)
 
-    MyLogger.info("Total delay by carrier:")
+    logger.info("Total delay by carrier:")
     groupedCarrier
       .agg(sum($"ArrDelay"))
       .show(10)
@@ -37,7 +40,7 @@ class Explorer {
 
   private def cancelledRatio(data: Dataset[_]): Unit = {
 
-    MyLogger.info("Cancelled flights stats:")
+    logger.info("Cancelled flights stats:")
 
     val cancelledCount =
       data
@@ -53,9 +56,9 @@ class Explorer {
         cancelledCount(1).getLong(1))
     val total = cancelled + notCancelled
 
-    MyLogger.info(f"Over $total%d flights, " +
+    logger.info(f"Over $total%d flights, " +
       f"${cancelled * 1.0 / total * 100}%2.2f%% were cancelled")
-    MyLogger.info(s"Removing $cancelled cancelled flights")
+    logger.info(s"Removing $cancelled cancelled flights")
   }
 
 }

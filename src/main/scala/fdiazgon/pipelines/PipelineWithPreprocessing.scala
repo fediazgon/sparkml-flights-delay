@@ -1,20 +1,23 @@
-package upm.bd.pipelines
+package fdiazgon.pipelines
 
-import org.apache.spark.ml.Model
+import fdiazgon.pipelines
+import fdiazgon.transformers.{FeaturesCreator, Indexer, Preprocesser}
+import fdiazgon.utils.LoggingUtils
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, TrainValidationSplit, TrainValidationSplitModel}
 import org.apache.spark.sql.Dataset
-import upm.bd.transformers.{FeaturesCreator, Indexer, Preprocesser}
-import upm.bd.utils.MyLogger
 
 /**
   * Base pipeline that preprocess the data, index some columns (strings)
-  * and add a features column. The method [[upm.bd.pipelines.PipelineWithPreprocessing#executePipeline executePipeline]]
+  * and add a features column. The method [[pipelines.PipelineWithPreprocessing#executePipeline executePipeline]]
   * need to be implemented with the behavior of the pipeline.
   *
   * @param data DataFrame to apply the transformations.
   */
 abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
+
+  private[this] val logger: Logger = LogManager.getLogger("mylogger")
 
   import PipelineWithPreprocessing._
 
@@ -30,11 +33,11 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
     * Preprocess the data executes the pipeline.
     */
   def run(): Unit = {
-    MyLogger.printHeader(s"Running ${this.getClass.getSimpleName}")
-    MyLogger.info(s"Predicting using columns: ${FEATURES_COL_NAMES.mkString(", ")}")
+    LoggingUtils.printHeader(s"Running ${this.getClass.getSimpleName}")
+    logger.info(s"Predicting using columns: ${FEATURES_COL_NAMES.mkString(", ")}")
     val preprocessedData = preprocess()
     executePipeline(preprocessedData)
-    MyLogger.printHeader(s"End ${this.getClass.getSimpleName}")
+    LoggingUtils.printHeader(s"End ${this.getClass.getSimpleName}")
   }
 
   private def preprocess(): Dataset[_] = {
@@ -46,11 +49,11 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
 
   protected def getModelFromTrainValidation
   (trainValidationSplit: TrainValidationSplit, trainingData: Dataset[_]): TrainValidationSplitModel = {
-    MyLogger.info("Training...")
+    logger.info("Training...")
     val model = trainValidationSplit.fit(trainingData)
 
     val trainedModelParams = model.getEstimatorParamMaps
-    MyLogger.info(s"${trainedModelParams.length} models were trained. " +
+    logger.info(s"${trainedModelParams.length} models were trained. " +
       s"Showing $METRIC_NAME value for each one:")
 
     printModelsWithMetrics(trainedModelParams, model.validationMetrics)
@@ -60,11 +63,11 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
 
   protected def getModelFromCrossValidation
   (crossValidator: CrossValidator, trainingData: Dataset[_]): CrossValidatorModel = {
-    MyLogger.info("Training...")
+    logger.info("Training...")
     val model = crossValidator.fit(trainingData)
 
     val trainedModelParams = model.getEstimatorParamMaps
-    MyLogger.info(s"${trainedModelParams.length} models were trained. " +
+    logger.info(s"${trainedModelParams.length} models were trained. " +
       s"Showing avg $METRIC_NAME value for each one:")
 
     printModelsWithMetrics(trainedModelParams, model.avgMetrics)
@@ -77,7 +80,7 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
   (trainedModelParams: Array[ParamMap], metricValues: Array[Double]): Unit = {
     trainedModelParams.zip(metricValues).zipWithIndex.foreach {
       case ((params, metric), index) =>
-        MyLogger.info(s"Model ${index + 1}:\n" +
+        logger.info(s"Model ${index + 1}:\n" +
           s"$params -> value = $metric")
     }
   }

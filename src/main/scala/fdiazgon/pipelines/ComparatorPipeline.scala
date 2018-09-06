@@ -1,13 +1,15 @@
-package upm.bd.pipelines
+package fdiazgon.pipelines
 
+import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.regression.{LinearRegression, RandomForestRegressor}
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.Dataset
-import upm.bd.utils.MyLogger
 
 class ComparatorPipeline(data: Dataset[_])
   extends PipelineWithPreprocessing(data) {
+
+  private[this] val logger: Logger = LogManager.getLogger("mylogger")
 
   override def executePipeline(data: Dataset[_]): Unit = {
 
@@ -35,7 +37,7 @@ class ComparatorPipeline(data: Dataset[_])
 
     val emptyParamGrid = new ParamGridBuilder().build()
 
-    MyLogger.info("Training linear regression")
+    logger.info("Training linear regression")
     val cvLrModel =
       getModelFromCrossValidation(
         new CrossValidator()
@@ -45,7 +47,7 @@ class ComparatorPipeline(data: Dataset[_])
           .setNumFolds(10),
         training)
 
-    MyLogger.info("Training random forest")
+    logger.info("Training random forest")
     val cvRfModel =
       getModelFromCrossValidation(
         new CrossValidator()
@@ -61,22 +63,22 @@ class ComparatorPipeline(data: Dataset[_])
     val avgLrAccuracy = cvLrModel.avgMetrics.min
     val avgRfAccuracy = cvRfModel.avgMetrics.min
 
-    MyLogger.info(s"Linear Regression accuracy = $avgLrAccuracy")
-    MyLogger.info(s"Random Forest accuracy = $avgRfAccuracy")
+    logger.info(s"Linear Regression accuracy = $avgLrAccuracy")
+    logger.info(s"Random Forest accuracy = $avgRfAccuracy")
 
     val winner = if (avgLrAccuracy < avgRfAccuracy) bestLrModel else bestRfModel
-    MyLogger.info(s"Winner model:\n" +
+    logger.info(s"Winner model:\n" +
       s"${winner.parent.extractParamMap()}")
 
-    MyLogger.info("Evaluating winner model")
+    logger.info("Evaluating winner model")
     val predictions = winner.transform(inTheLocker)
 
     // Select example rows to display.
-    MyLogger.info("Predictions:")
+    logger.info("Predictions:")
     predictions.select(LABEL_COL, PREDICTION_COL, "features").show(5)
 
     val metric = evaluator.evaluate(predictions)
-    MyLogger.info(s"Value of $METRIC_NAME of testing subset: $metric")
+    logger.info(s"Value of $METRIC_NAME of testing subset: $metric")
 
   }
 

@@ -1,7 +1,7 @@
-package upm.bd
+package fdiazgon
 
+import fdiazgon.pipelines.{ComparatorPipeline, LinearRegressionPipeline, LinearRegressionTuningPipeline, RandomForestTuningPipeline}
 import org.rogach.scallop.{ScallopOption, _}
-import upm.bd.pipelines._
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val rawFilePath: ScallopOption[String] = trailArg[String](required = false)
@@ -11,7 +11,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   verify()
 }
 
-object FlightDelayApp {
+object FlightsDelayApp {
 
   private val TUNING_FILE_PATH: String = "raw/tuning.csv"
 

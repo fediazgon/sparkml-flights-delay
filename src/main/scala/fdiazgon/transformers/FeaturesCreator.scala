@@ -1,11 +1,11 @@
-package upm.bd.transformers
+package fdiazgon.transformers
 
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
   * This transformer creates a new column called 'features' when the
-  * [[upm.bd.transformers.FeaturesCreator#transform transform]] method is called.
+  * [[FeaturesCreator#transform transform]] method is called.
   *
   * @param featuresColNames An array with the names of the columns that are going to
   *                         be aggregated under the 'features' column.
