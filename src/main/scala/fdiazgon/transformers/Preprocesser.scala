@@ -69,7 +69,7 @@ class Preprocesser(delayThreshold: Int = 15) {
     logger.info("Adding 'OverDelay' and 'WeekEnd' columns")
     df = df.select(
       $"*",
-      ($"ArrDelay" > lit(delayThreshold)).as("OverDelay"),
+      ($"ArrDelay" > lit(delayThreshold)).as("OverDelay").cast("int"),
       (col("DayOfWeek") === 6 || col("DayOfWeek") === 7).as("WeekEnd")
     )
 
