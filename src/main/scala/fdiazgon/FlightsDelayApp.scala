@@ -1,14 +1,13 @@
 package fdiazgon
 
-import fdiazgon.pipelines.{ComparatorPipeline, LinearRegressionPipeline, LinearRegressionTuningPipeline, RandomForestTuningPipeline}
-import org.rogach.scallop.{ScallopOption, _}
+import fdiazgon.pipelines._
+import org.rogach.scallop.{ScallopConf, ScallopOption}
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val file: ScallopOption[String] = trailArg[String](required = true)
-  val tuning: ScallopOption[Boolean] = opt[Boolean]()
-  val compare: ScallopOption[Boolean] = opt[Boolean]()
   val explore: ScallopOption[Boolean] = opt[Boolean]()
-  val logistic: ScallopOption[Boolean] = opt[Boolean]()
+  val tune: ScallopOption[Boolean] = opt[Boolean]()
+  val compare: ScallopOption[Boolean] = opt[Boolean]()
   verify()
 }
 
@@ -19,10 +18,10 @@ object FlightsDelayApp {
     val conf = new Conf(args)
     val filePath = conf.file()
     val shouldExplore = conf.explore.supplied
-    val shouldTune = conf.tuning.supplied
+    val shouldTune = conf.tune.supplied
     val shouldCompare = conf.compare.supplied
 
-    lazy val rawDf = CSVReader.read(filePath, hasHeader = true)
+    val rawDf = CSVReader.read(filePath, header = true)
 
     if (shouldExplore) new Explorer().explore(rawDf)
 

@@ -1,63 +1,53 @@
-# SparkML
+<h1 align="center">
+  <div style="margin:10px;">
+    <img src="https://github.com/fdiazgon/fdiazgon.github.io/blob/master/art/sparkml-flights-delay-logo.png?raw=true" alt="project-logo" width="200px">
+  </div>
+  sparkml-flights-delay
+</h1>
 
-Master EIT Data Science @UPM. Big Data assignment.
+<h4 align="center">
+Predicting the arrival delay time of a commercial flights using Apache Spark <a href="https://spark.apache.org/mllib/">MLlib</a>
+</h4>
+
+<p align="center">
+  <a href="#getting-started">Getting started</a> •
+  <a href="#validation">Validation</a> •
+  <a href="#authors">Authors</a> •
+  <a href="#license">License</a>
+ </p>
 
 ## Getting started
 
-The best way to run this project is by importing it as a Maven project in your favorite IDE,
-otherwise you will need to install Spark or create a fat jar with the Spark dependencies
-included using the `mvn package` command.
+The easiest way to run this project is cloning the project locally, create a fat jar using Maven and executing the shell
+script that can be found on the project's root directory.
 
-The main class of the application receives the dataset to process as a parameter. You can
-find multiple valid datasets at this link: http://stat-computing.org/dataexpo/2009/the-data.html
-
-By default, the applications evaluates a Linear Regression model on the given dataset. You
-can add some flags to trigger other stages:
-
-* `--explore`: compute some statistics on the dataset (e.g., flights by carrier,
-cancelled flights).
-* `--tuning`: obtain the best set of parameters (e.g., elasticNetParam, regParam)
-for different algorithms (for the moment, Linear Regression and Random Forest).
-* `--compare`: compare different algorithms using the best parameters for each
-one (the parameters are hardcoded, shame on us).
-
-Be aware that the tuning and the compare stages are going to take a lot of time with
-a large dataset (14 models are trained with 10 folds cross validation). This is why we
-included a `tuning.csv` file in the `raw` folder. Please, consider to use this dataset when 
-you provide either the `--tuning` or `--compare` flag.
-
-This is one possible run configuration that you can add in your IDE:
-
-![Run configuration](art/run_config.png)
-
-This is the output of the tuning stage:
-
-![Tuning stage](art/tuning.gif)
-
-This is the output of the compare stage:
-
-![Compare stage](art/compare.gif)
-
-### Running the app with `spark-submit`
-
-You can generate the jar file executing `mvn package`. This will generate a binary file
-you can submit using `spark-submit` command. Ensure your local Spark version is Spark 2.2.0.
-
-Since we are using a an open source logging template to add color to the output, it's necessary
-to read the `log4.properties` included in the jar file. Use this command:
-
+```bash
+mvn clean package
+./run.sh
 ```
-spark-submit \
---conf "spark.executor.extraJavaOptions=-Dlog4j.configuration=log4j.properties" \
---conf "spark.driver.extraJavaOptions=-Dlog4j.configuration=log4j.properties" \
---driver-class-path jars/SparkML-1.0-SNAPSHOT-jar-with-dependencies.jar \
---class upm.bd.FlightDelayApp jars/SparkML-1.0-SNAPSHOT-jar-with-dependencies.jar \
---tuning raw/tuning.csv
-```
+
+The output should be similar to the following one:
+
+![project-demo](https://github.com/fdiazgon/fdiazgon.github.io/blob/master/art/sparkml-flights-delay-demo.gif?raw=true)
+
+You can also import it to your favorite IDE, but keep in mind that the program requires one argument, which is the dataset
+to process. You can find multiple valid datasets at this link: [Airline On-Time Statistics and Delay Causes](http://stat-computing.org/dataexpo/2009/the-data.html).
+
+Be aware that some stages can take a lot of time with a large dataset (14 models are trained with 10 folds cross validation).
+This is why we included a small `tuning.csv` file in the `raw` folder. Please, consider to use this dataset if you want to
+run all the stages. These stages are triggered using the following flags (add/remove them inside the `run.sh` script):
+
+* `--explore`: compute some statistics on the dataset (e.g., flights by carrier, cancelled flights).
+* `--tune`: obtain the best set of parameters (e.g., elasticNetParam, regParam) for different algorithms (Linear Regression and Random Forest).
+* `--compare`: compare different algorithms using the best parameters from the tuning stage.
 
 ## Validation process
 
-//TODO
+**Work pending**
+
+Reviewing the workflow of the program we have found some issues in the validation process. For example, during the `tune`
+stage, a grid search is carried out on the whole dataset. We should have split the dataset into training/validation/test from the very
+beginning.
 
 ## Authors :es: :blue_heart: :it:
 

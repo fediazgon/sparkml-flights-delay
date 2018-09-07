@@ -1,16 +1,17 @@
 package fdiazgon.transformers
 
-import fdiazgon.utils.SparkSessionWrapper.spark.implicits._
-import fdiazgon.utils.{DataFrameUtils, LoggingUtils}
+import fdiazgon.utils.{DataFrameUtils, LoggingUtils, SparkSessionWrapper}
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset}
 
-class Preprocesser(delayThreshold: Int = 15) {
+class Preprocesser(delayThreshold: Int = 15) extends SparkSessionWrapper {
 
   private[this] val logger: Logger = LogManager.getLogger("mylogger")
 
   def preprocess(dataset: Dataset[_]): DataFrame = {
+
+    import spark.implicits._
 
     LoggingUtils.printHeader("PREPROCESSING")
 
@@ -37,7 +38,7 @@ class Preprocesser(delayThreshold: Int = 15) {
     // Check null values. They are not expected so I want to inspect
     val nullValuesDf = df.filter($"ArrDelay".isNull)
     if (nullValuesDf.count() > 0) {
-      logger.warn("We still have null values! Please check why!\n" +
+      logger.warn("We still have null values! Please check why! " +
         "We already have removed the expected source of nulls.")
       DataFrameUtils.show(nullValuesDf)
       logger.info("Removing remaining null values")
@@ -48,8 +49,7 @@ class Preprocesser(delayThreshold: Int = 15) {
     }
 
     val forbiddenVariables = Seq("ArrTime", "ActualElapsedTime", "AirTime", "TaxiIn",
-      "Diverted", "CarrierDelay", "WeatherDelay", "NASDelay",
-      "SecurityDelay", "LateAircraftDelay")
+      "Diverted", "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", "LateAircraftDelay")
     logger.info(s"Removing forbidden variables: ${forbiddenVariables.mkString(", ")}")
     df = df.drop(forbiddenVariables: _*)
 
@@ -65,12 +65,12 @@ class Preprocesser(delayThreshold: Int = 15) {
       })
 
     // Create a column if the delay is more than the threshold
-    // Maybe we will make a binary classifier. This is beyond the scope of the exam
-    logger.info("Adding 'OverDelay' and 'WeekEnd' columns")
+    // Maybe we will make a binary classifier
+    logger.info("Adding 'OverDelay' and 'Weekend' columns")
     df = df.select(
       $"*",
       ($"ArrDelay" > lit(delayThreshold)).as("OverDelay").cast("int"),
-      (col("DayOfWeek") === 6 || col("DayOfWeek") === 7).as("WeekEnd")
+      (col("DayOfWeek") === 6 || col("DayOfWeek") === 7).as("Weekend")
     )
 
     logger.info("Converting time columns")

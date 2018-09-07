@@ -13,12 +13,13 @@ object LoggingUtils {
 
   def printHeader(header: String): Unit = {
     val headerLayout = new MulticolorLayout()
-    headerLayout.setConversionPattern("%color-1;39;39{%m%n}")
+    headerLayout.setColors("blue:1;34")
+    headerLayout.setConversionPattern("[%color-blue{%p}] %color-1;39;39{%m%n}")
     consoleAppender.setLayout(headerLayout)
     logger.info("-" * HEADER_SIZE)
-    headerLayout.setConversionPattern("%color-1;39;32{%m%n}")
-    logger.info(header.toUpperCase)
-    headerLayout.setConversionPattern("%color-1;39;39{%m%n}")
+    headerLayout.setConversionPattern("[%color-blue{%p}] %color-1;39;32{%m%n}")
+    logger.info(" " + header.toUpperCase)
+    headerLayout.setConversionPattern("[%color-blue{%p}] %color-1;39;39{%m%n}")
     logger.info("-" * HEADER_SIZE)
     consoleAppender.setLayout(defaultLayout)
   }

@@ -2,17 +2,13 @@ package fdiazgon.utils
 
 import org.apache.spark.sql.SparkSession
 
-// It's a trait because it has not independent meaning, we use this trait to
-// add functionality in an object-oriented manner.
-object SparkSessionWrapper {
+trait SparkSessionWrapper {
 
-  // This variable should be accessed only within the object itself, i.e.,
-  // using the 'this' keyword.
   lazy val spark: SparkSession =
-  SparkSession
-    .builder()
-    .appName("SparkML")
-    .master("local[*]")
-    .getOrCreate()
+    SparkSession
+      .builder()
+      .appName("sparkml-flights-delay")
+      .master("local[*]")
+      .getOrCreate()
 
 }

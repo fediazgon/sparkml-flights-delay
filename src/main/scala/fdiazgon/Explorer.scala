@@ -1,6 +1,6 @@
 package fdiazgon
 
-import fdiazgon.utils.LoggingUtils
+import fdiazgon.utils.{LoggingUtils, SparkSessionWrapper}
 import org.apache.log4j.{LogManager, Logger}
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.functions._
@@ -9,17 +9,16 @@ import org.apache.spark.sql.functions._
 /**
   * Prints some interesting statistics on the data.
   */
-class Explorer {
+class Explorer extends SparkSessionWrapper {
 
   private[this] val logger: Logger = LogManager.getLogger("mylogger")
 
-  import fdiazgon.utils.SparkSessionWrapper.spark.implicits._
+  import spark.implicits._
 
   def explore(data: Dataset[_]): Unit = {
 
     LoggingUtils.printHeader("EXPLORING")
 
-    // Count the number of flights by carrier
     val groupedCarrier = data.groupBy($"UniqueCarrier")
 
     logger.info("Flights by carrier:")
@@ -35,7 +34,6 @@ class Explorer {
       .show(10)
 
     cancelledRatio(data)
-
   }
 
   private def cancelledRatio(data: Dataset[_]): Unit = {
@@ -51,13 +49,10 @@ class Explorer {
         .collect() // We can call collect. It's going to have 2 rows only
 
     // TODO: this throws an exception when there is no cancelled flights
-    val (cancelled, notCancelled) =
-      (cancelledCount(0).getLong(1),
-        cancelledCount(1).getLong(1))
+    val (cancelled, notCancelled) = (cancelledCount(0).getLong(1), cancelledCount(1).getLong(1))
     val total = cancelled + notCancelled
 
-    logger.info(f"Over $total%d flights, " +
-      f"${cancelled * 1.0 / total * 100}%2.2f%% were cancelled")
+    logger.info(f"Over $total%d flights, ${cancelled * 1.0 / total * 100}%2.2f were cancelled")
     logger.info(s"Removing $cancelled cancelled flights")
   }
 

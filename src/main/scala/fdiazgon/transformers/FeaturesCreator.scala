@@ -5,7 +5,7 @@ import org.apache.spark.sql.{DataFrame, Dataset}
 
 /**
   * This transformer creates a new column called 'features' when the
-  * [[FeaturesCreator#transform transform]] method is called.
+  * [[fdiazgon.transformers.FeaturesCreator#transform transform]] method is called.
   *
   * @param featuresColNames An array with the names of the columns that are going to
   *                         be aggregated under the 'features' column.

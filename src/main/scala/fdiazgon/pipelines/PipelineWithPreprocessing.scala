@@ -1,6 +1,5 @@
 package fdiazgon.pipelines
 
-import fdiazgon.pipelines
 import fdiazgon.transformers.{FeaturesCreator, Indexer, Preprocesser}
 import fdiazgon.utils.LoggingUtils
 import org.apache.log4j.{LogManager, Logger}
@@ -9,9 +8,9 @@ import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, TrainVal
 import org.apache.spark.sql.Dataset
 
 /**
-  * Base pipeline that preprocess the data, index some columns (strings)
-  * and add a features column. The method [[pipelines.PipelineWithPreprocessing#executePipeline executePipeline]]
-  * need to be implemented with the behavior of the pipeline.
+  * Base pipeline that preprocess the data, index some columns (strings) and add a features column.
+  * The method [[fdiazgon.pipelines.PipelineWithPreprocessing#executePipeline executePipeline]] need to be
+  * implemented with the behavior of the pipeline.
   *
   * @param data DataFrame to apply the transformations.
   */
@@ -73,7 +72,6 @@ abstract class PipelineWithPreprocessing(val data: Dataset[_]) {
     printModelsWithMetrics(trainedModelParams, model.avgMetrics)
 
     model
-
   }
 
   private def printModelsWithMetrics

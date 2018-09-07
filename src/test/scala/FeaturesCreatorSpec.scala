@@ -1,10 +1,11 @@
 import fdiazgon.transformers.FeaturesCreator
+import fdiazgon.utils.SparkSessionWrapper
 import org.apache.spark.sql.DataFrame
 import org.scalatest._
 
-class FeaturesCreatorSpec extends FlatSpec with Matchers {
+class FeaturesCreatorSpec extends FlatSpec with Matchers with SparkSessionWrapper {
 
-  import fdiazgon.utils.SparkSessionWrapper.spark.implicits._
+  import spark.implicits._
 
   val featuresColNames = Array("Year", "Month", "DayOfWeek")
   val otherColName = "Fullname"
