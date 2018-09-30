@@ -12,7 +12,7 @@ Predicting the arrival delay time of a commercial flights using Apache Spark <a 
 <p align="center">
   <a href="#getting-started">Getting started</a> •
   <a href="#validation-process">Validation process</a> •
-  <a href="#authors">Authors</a> •
+  <a href="#authors-es-blue_heart-it">Authors</a> •
   <a href="#license">License</a>
  </p>
 
