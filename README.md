@@ -1,6 +1,6 @@
 <h1 align="center">
   <div style="margin:10px;">
-    <img src="https://github.com/fdiazgon/fdiazgon.github.io/blob/master/art/sparkml-flights-delay-logo.png?raw=true" alt="project-logo" width="200px">
+    <img src="https://github.com/fediazgon/sparkml-flights-delay/blob/assets/logo.png?raw=true" alt="project-logo" width="200px">
   </div>
   sparkml-flights-delay
 </h1>
@@ -31,7 +31,7 @@ It is possible to active/deactivate the explore stage with the `--explore` flag 
 
 The output should be similar to the following one:
 
-![project-demo](https://github.com/fdiazgon/fdiazgon.github.io/blob/master/art/sparkml-flights-delay-demo.gif?raw=true)
+![project-demo](https://github.com/fediazgon/sparkml-flights-delay/blob/assets/demo.gif?raw=true)
 
 You can also import it to your favourite IDE, but keep in mind that the program requires one argument, which is the dataset
 to process. You can find multiple valid datasets at this link: [Airline On-Time Statistics and Delay Causes](http://stat-computing.org/dataexpo/2009/the-data.html).
@@ -44,7 +44,7 @@ that the program works properly.
 
 The general workflow on the program is shown in the image below:
 
-![project-flow](https://github.com/fdiazgon/fdiazgon.github.io/blob/master/art/sparkml-flights-delay-flow.png?raw=true)
+![project-flow](https://github.com/fediazgon/sparkml-flights-delay/blob/assets/flow.png?raw=true)
 
 Hyperparameter tuning and model selection are carried out using cross-validation on the training dataset. In this stage,
 a grid search is performed using two different models: Linear Regression and Random Forest (you can add your own 
